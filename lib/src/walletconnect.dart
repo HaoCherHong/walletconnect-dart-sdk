@@ -30,7 +30,7 @@ const ethSigningMethods = [
 typedef OnConnectRequest = void Function(SessionStatus status);
 typedef OnSessionUpdate = void Function(WCSessionUpdateResponse response);
 typedef OnDisconnect = void Function();
-typedef OnDisplayUriCallback = void Function(String uri);
+typedef OnDisplayUriCallback = Future Function(String uri);
 
 /// WalletConnect is an open source protocol for connecting decentralised
 /// applications to mobile wallets with QR code scanning or deep linking.
@@ -158,7 +158,15 @@ class WalletConnect {
   Future<SessionStatus> connect(
       {int? chainId, OnDisplayUriCallback? onDisplayUri}) async {
     if (connected) {
-      onDisplayUri?.call(session.toUri());
+      if (onDisplayUri != null) {
+        try {
+          // onDisplayUri(session.toUri());
+          await onDisplayUri(session.toUri());
+        } catch (e, s) {
+          print(e);
+          print(s);
+        }
+      }
       return SessionStatus(
         chainId: session.chainId,
         accounts: session.accounts,
@@ -205,7 +213,15 @@ class WalletConnect {
 
     // Display the URI
     final uri = session.toUri();
-    onDisplayUri?.call(uri);
+    if (onDisplayUri != null) {
+      try {
+        // onDisplayUri(uri);
+        await onDisplayUri(uri);
+      } catch (e, s) {
+        print(e);
+        print(s);
+      }
+    }
     _eventBus.fire(Event<String>('display_uri', uri));
 
     // Send the request
